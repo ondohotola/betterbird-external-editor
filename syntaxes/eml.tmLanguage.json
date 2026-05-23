@@ -1,0 +1,47 @@
+{
+  "scopeName": "text.eml",
+  "patterns": [
+    { "include": "#headers" },
+    { "include": "#signature" },
+    { "include": "#quoted-line" },
+    { "include": "#body-text" }
+  ],
+  "repository": {
+    "headers": {
+      "begin": "\\A",
+      "end": "^(?=$)",
+      "name": "meta.headers.eml",
+      "patterns": [
+        {
+          "match": "^([A-Za-z-]+):\\s*(.*)$",
+          "captures": {
+            "1": { "name": "keyword.other.header-name.eml" },
+            "2": { "name": "string.unquoted.header-value.eml" }
+          }
+        },
+        {
+          "match": "^[ \\t]+(.*)$",
+          "captures": {
+            "1": { "name": "string.unquoted.header-value.eml" }
+          }
+        }
+      ]
+    },
+
+    "signature": {
+      "begin": "^-- $",
+      "end": "\\z",
+      "name": "comment.block.signature.eml"
+    },
+
+    "quoted-line": {
+      "match": "^>.*$",
+      "name": "comment.line.quoted.eml"
+    },
+
+    "body-text": {
+      "match": "^(?!>|-- $).*$",
+      "name": "text.body.unquoted.eml"
+    }
+  }
+}

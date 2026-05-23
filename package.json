@@ -1,0 +1,57 @@
+{
+  "name": "betterbird-external-editor",
+  "displayName": "EML External Editor",
+  "description": "Language support for RFC 5322 .eml files",
+  "version": "0.0.8",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "pricing": "Free",
+  "publisher": "ondohotola",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ondohotola/betterbird-external-editor.git"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "eml",
+        "aliases": [
+          "Email Message",
+          "eml",
+          "mail-message"
+        ],
+        "extensions": [
+          ".eml"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "eml",
+        "scopeName": "text.eml",
+        "path": "./syntaxes/eml.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "eml.reflow",
+        "title": "EML: Reflow Paragraph"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "eml.reflow",
+        "key": "alt+q",
+        "when": "editorTextFocus && editorLangId == eml"
+      }
+    ]
+  }
+}

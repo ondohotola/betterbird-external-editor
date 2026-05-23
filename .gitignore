@@ -1,0 +1,7 @@
+*.vsix
+*,v
+CLAUDE.md
+eml-extension-publishing-notes.md
+.DS_Store
+node_modules/
+.vscode-test/

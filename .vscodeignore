@@ -1,0 +1,12 @@
+.vscode/**
+.vscode-test/**
+.gitignore
+vsc-extension-quickstart.md
+eml-extension-publishing-notes.md
+CLAUDE.md
+MEMORY.md
+AGENTS.md
+cspell.json
+.cursorrules
+.aider*
+**/*,v
