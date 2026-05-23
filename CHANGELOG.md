@@ -1,5 +1,12 @@
 # Change Log
 
+## [0.0.9] – 2026-05-24
+
+- **Tile icon updated.** A different image now
+  appears on the marketplace listing tile, in
+  marketplace search results, and in the
+  Extensions sidebar next to the entry.
+
 ## [0.0.8] – 2026-05-24
 
 - **Marketplace tile icon.** A 256×256 PNG
