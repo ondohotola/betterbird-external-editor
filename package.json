@@ -2,7 +2,7 @@
   "name": "betterbird-external-editor",
   "displayName": "EML External Editor",
   "description": "Language support for RFC 5322 .eml files",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "SEE LICENSE IN LICENSE.txt",
   "pricing": "Free",
   "publisher": "ondohotola",

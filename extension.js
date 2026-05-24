@@ -1,5 +1,7 @@
 const vscode = require("vscode");
 
+const ATTRIBUTION_RE = /^On .*\d.*\bwrote:\s*$/;
+
 function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand("eml.reflow", reflow),
@@ -28,7 +30,13 @@ function reflow(editor, edit) {
 }
 
 function reflowParagraph(doc, edit, block, wrapColumn) {
-  const { startLine, endLine, prefix } = block;
+  const { startLine, endLine, prefix, isAttribution } = block;
+
+  // Attribution lines ("On X, Y wrote:") are left
+  // intact even if they overshoot the column —
+  // splitting them produces less readable output than
+  // tolerating the overshoot.
+  if (isAttribution) return;
 
   const stripped = [];
   for (let i = startLine; i <= endLine; i++) {
@@ -50,15 +58,22 @@ function reflowParagraph(doc, edit, block, wrapColumn) {
 }
 
 function detectPrefix(text) {
-  // Matches "> ", "> > ", ">> ", and similar repeated-quote
-  // sequences. Failing that, a bare leading indent of spaces
-  // or tabs — also preserved verbatim on every wrapped line.
-  const match = text.match(/^((?:>\s*)+|[ \t]+)/);
+  // Matches "> ", "> > ", ">> ", "| ", "|| ", and mixed
+  // sequences like "| > ". The `|` form is an older
+  // Unix-mailer alternate to `>` (mh, some pine setups,
+  // archived mailing-list posts). Failing that, a bare
+  // leading indent of spaces or tabs — also preserved
+  // verbatim on every wrapped line.
+  const match = text.match(/^((?:[>|]\s*)+|[ \t]+)/);
   return match ? match[1] : "";
 }
 
 function isEmptyQuote(text, prefix) {
   return text.slice(prefix.length).trim() === "";
+}
+
+function isAttribution(text) {
+  return ATTRIBUTION_RE.test(text);
 }
 
 function findParagraph(doc, line) {
@@ -88,12 +103,20 @@ function findParagraph(doc, line) {
   // Quote-only line (e.g. "> "): not part of any paragraph.
   if (isEmptyQuote(here, prefix)) return null;
 
+  // Attribution line ("On X, Y wrote:"): a self-contained
+  // one-line paragraph that reflowParagraph will pass
+  // through unchanged.
+  if (isAttribution(here)) {
+    return { startLine: line, endLine: line, prefix, isAttribution: true };
+  }
+
   let startLine = line;
   while (startLine > bodyStart) {
     const prev = doc.lineAt(startLine - 1).text;
     if (prev.trim() === "") break;
     if (detectPrefix(prev) !== prefix) break;
     if (isEmptyQuote(prev, prefix)) break;
+    if (isAttribution(prev)) break;
     startLine--;
   }
 
@@ -103,6 +126,7 @@ function findParagraph(doc, line) {
     if (next.trim() === "") break;
     if (detectPrefix(next) !== prefix) break;
     if (isEmptyQuote(next, prefix)) break;
+    if (isAttribution(next)) break;
     endLine++;
   }
 

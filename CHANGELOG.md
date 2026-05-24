@@ -1,5 +1,24 @@
 # Change Log
 
+## [0.0.10] – 2026-05-24
+
+- **Attribution lines stay intact.** A line
+  matching `On <date>, <name> wrote:` — the
+  conventional reply attribution — is now
+  treated as a self-contained paragraph and
+  left unchanged by Alt-Q, even if it
+  overshoots `editor.wordWrapColumn`.
+  Previously Alt-Q rewrapped such a line,
+  scattering the sender's name, date, and email
+  address across two or three short lines.
+- **`|` recognized as quote prefix.** Lines
+  starting with `|` (an older Unix-mailer
+  alternate to `>` used by mh, some pine
+  configurations, and archived mailing-list
+  posts) now reflow with the `|` prefix
+  preserved on every wrapped line. Mixed
+  prefixes like `| >` are recognized too.
+
 ## [0.0.9] – 2026-05-24
 
 - **Tile icon updated.** A different image now
