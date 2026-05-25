@@ -2,7 +2,7 @@
   "name": "betterbird-external-editor",
   "displayName": "EML External Editor",
   "description": "Language support for RFC 5322 .eml files",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "license": "SEE LICENSE IN LICENSE.txt",
   "pricing": "Free",
   "publisher": "ondohotola",
@@ -14,6 +14,9 @@
   "engines": {
     "vscode": "^1.75.0"
   },
+  "activationEvents": [
+    "onLanguage:eml"
+  ],
   "categories": [
     "Programming Languages"
   ],
@@ -52,6 +55,16 @@
         "key": "alt+q",
         "when": "editorTextFocus && editorLangId == eml"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "EML",
+      "properties": {
+        "eml.autoWrap.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Wrap typed text automatically at editor.wordWrapColumn (default 72). Headers, the signature block, attribution lines, and empty quote lines are skipped. Pastes are not auto-wrapped — only single-character typed inserts trigger the behavior."
+        }
+      }
+    }
   }
 }

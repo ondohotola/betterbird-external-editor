@@ -1,5 +1,30 @@
 # Change Log
 
+## [0.0.11] – 2026-05-25
+
+- **Auto-wrap as you type (default on).** Text typed
+  in a body paragraph now wraps at
+  `editor.wordWrapColumn` (default 72) on the
+  keystroke that pushes the line past the column.
+  The break is the latest whitespace at or before
+  the column; any quote prefix (`>`, `|`) or bare
+  indent on the line is re-applied to the wrapped
+  continuation. Headers, the signature block,
+  attribution lines, and empty quote lines are
+  skipped — same exclusions Alt-Q already honors.
+  Pastes are not auto-wrapped; only single-character
+  typed inserts trigger the behavior. Disable
+  globally or per-folder via the new
+  `eml.autoWrap.enabled` setting.
+- **Signature marker is now a hard paragraph
+  boundary.** Alt-Q on a body paragraph that sits
+  directly above `-- ` (no blank line between)
+  previously consumed the signature block into the
+  paragraph and rewrapped it. The walker now treats
+  the bare `-- ` line as a stop condition in its
+  own right, so the signature stays intact whether
+  or not a blank line separates it from the body.
+
 ## [0.0.10] – 2026-05-24
 
 - **Attribution lines stay intact.** A line

@@ -2,9 +2,12 @@ const vscode = require("vscode");
 
 const ATTRIBUTION_RE = /^On .*\d.*\bwrote:\s*$/;
 
+let isAutoWrapping = false;
+
 function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand("eml.reflow", reflow),
+    vscode.workspace.onDidChangeTextDocument(handleAutoWrap),
   );
 }
 
@@ -76,27 +79,46 @@ function isAttribution(text) {
   return ATTRIBUTION_RE.test(text);
 }
 
+function findBodyStart(doc) {
+  // RFC 5322 separates headers from body with the first blank line.
+  for (let i = 0; i < doc.lineCount; i++) {
+    if (doc.lineAt(i).text === "") return i + 1;
+  }
+  return 0;
+}
+
+function findSignatureLine(doc, bodyStart) {
+  // Conventional signature marker; leave the block below alone.
+  for (let i = bodyStart; i < doc.lineCount; i++) {
+    if (doc.lineAt(i).text === "-- ") return i;
+  }
+  return -1;
+}
+
+function isWrappableLine(doc, line) {
+  const bodyStart = findBodyStart(doc);
+  if (line < bodyStart) return false;
+
+  const sigLine = findSignatureLine(doc, bodyStart);
+  if (sigLine !== -1 && line >= sigLine) return false;
+
+  const text = doc.lineAt(line).text;
+  const prefix = detectPrefix(text);
+  if (isEmptyQuote(text, prefix)) return false;
+  if (isAttribution(text)) return false;
+
+  return true;
+}
+
 function findParagraph(doc, line) {
   const here = doc.lineAt(line).text;
   if (here.trim() === "") return null;
 
-  // RFC 5322 separates headers from body with the first blank line.
-  let bodyStart = 0;
-  for (let i = 0; i < doc.lineCount; i++) {
-    if (doc.lineAt(i).text === "") {
-      bodyStart = i + 1;
-      break;
-    }
-  }
+  const bodyStart = findBodyStart(doc);
   if (line < bodyStart) return null;
 
-  // Conventional signature marker; leave the block below alone.
-  for (let i = bodyStart; i < doc.lineCount; i++) {
-    if (doc.lineAt(i).text === "-- ") {
-      if (line >= i) return null;
-      break;
-    }
-  }
+  const sigLine = findSignatureLine(doc, bodyStart);
+  if (sigLine !== -1 && line >= sigLine) return null;
 
   const prefix = detectPrefix(here);
 
@@ -124,6 +146,11 @@ function findParagraph(doc, line) {
   while (endLine < doc.lineCount - 1) {
     const next = doc.lineAt(endLine + 1).text;
     if (next.trim() === "") break;
+    // `-- ` ends the body block even without a
+    // preceding blank line, so a paragraph above
+    // an immediately-adjacent signature marker
+    // never extends into it.
+    if (next === "-- ") break;
     if (detectPrefix(next) !== prefix) break;
     if (isEmptyQuote(next, prefix)) break;
     if (isAttribution(next)) break;
@@ -151,6 +178,71 @@ function hardWrap(text, width) {
   if (current) lines.push(current);
 
   return lines;
+}
+
+function handleAutoWrap(event) {
+  // Guard against the listener re-firing on the
+  // edit it issues below.
+  if (isAutoWrapping) return;
+
+  const doc = event.document;
+  if (doc.languageId !== "eml") return;
+
+  const config = vscode.workspace.getConfiguration("eml", doc);
+  if (!config.get("autoWrap.enabled", true)) return;
+
+  // Only fire on single-character typed inserts.
+  // Pastes (text.length > 1), deletions
+  // (rangeLength > 0), and newline keystrokes are
+  // all ignored.
+  if (event.contentChanges.length !== 1) return;
+  const change = event.contentChanges[0];
+  if (change.rangeLength !== 0) return;
+  if (change.text.length !== 1) return;
+  if (change.text === "\n" || change.text === "\r") return;
+
+  const line = change.range.start.line;
+  if (!isWrappableLine(doc, line)) return;
+
+  const text = doc.lineAt(line).text;
+  const wrapColumn = vscode.workspace
+    .getConfiguration("editor", doc)
+    .get("wordWrapColumn", 72);
+  if (text.length <= wrapColumn) return;
+
+  const prefix = detectPrefix(text);
+
+  // Latest whitespace at or before the column.
+  // Search stops at prefix.length so we never
+  // break inside the quote/indent prefix.
+  let breakAt = -1;
+  for (let i = Math.min(wrapColumn, text.length - 1); i >= prefix.length; i--) {
+    if (text[i] === " " || text[i] === "\t") {
+      breakAt = i;
+      break;
+    }
+  }
+  // No whitespace to break on (e.g. a single long
+  // URL) — leave the line over-wide, matching
+  // Emacs auto-fill behavior.
+  if (breakAt === -1) return;
+
+  const wsEdit = new vscode.WorkspaceEdit();
+  wsEdit.replace(
+    doc.uri,
+    new vscode.Range(line, breakAt, line, breakAt + 1),
+    "\n" + prefix,
+  );
+
+  isAutoWrapping = true;
+  vscode.workspace.applyEdit(wsEdit).then(
+    () => {
+      isAutoWrapping = false;
+    },
+    () => {
+      isAutoWrapping = false;
+    },
+  );
 }
 
 exports.activate = activate;
