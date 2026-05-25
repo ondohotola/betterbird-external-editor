@@ -14,8 +14,9 @@ Adds syntax highlighting that distinguishes:
 - Quoted reply lines beginning with `>`
 - The signature block, introduced by a `--` marker line
 
-No code execution, no MIME body decoding — just colorization
-of the on-disk message text.
+It also provides mail-aware paragraph wrapping for plain text
+message bodies. There is no MIME body decoding or message sending;
+the extension only edits the `.eml` text open in VS Code.
 
 ## Reflow
 
@@ -28,6 +29,28 @@ are left untouched.
 
 Cmd-/ toggles `> ` on selected lines — useful for converting
 plain text into a quoted form when writing a reply by hand.
+
+## Auto-wrap
+
+By default, typed body text wraps automatically at
+`editor.wordWrapColumn` (default 72). The break is placed at the
+latest whitespace before the wrap column, and quote prefixes such
+as `>` or `|` are preserved on continuation lines.
+
+Auto-wrap skips headers, attribution lines such as
+`On <date>, <name> wrote:`, empty quote lines, and the signature
+block after a `-- ` marker. Pastes are left alone; only
+single-character typed inserts trigger wrapping. If a line is
+already longer than `editor.wordWrapColumn`, editing it will not
+force a new wrap.
+
+Disable it in user or workspace settings with:
+
+```json
+{
+  "eml.autoWrap.enabled": false
+}
+```
 
 ### If you also have Rewrap installed
 

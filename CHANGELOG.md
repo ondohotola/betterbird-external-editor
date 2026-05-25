@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.0.12] – 2026-05-25
+
+- **Auto-wrap leaves already-overwide lines alone.**
+  Editing a line that was already longer than
+  `editor.wordWrapColumn` no longer causes an
+  unexpected wrap. Auto-wrap still fires when a
+  single typed character is what pushes the line
+  past the column, and pastes remain unchanged.
+- **README documents auto-wrap.** The README now
+  describes the default-on auto-wrap behavior,
+  skipped regions, paste behavior, and
+  `eml.autoWrap.enabled` setting.
+
 ## [0.0.11] – 2026-05-25
 
 - **Auto-wrap as you type (default on).** Text typed

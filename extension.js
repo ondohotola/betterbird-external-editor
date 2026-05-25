@@ -208,6 +208,8 @@ function handleAutoWrap(event) {
   const wrapColumn = vscode.workspace
     .getConfiguration("editor", doc)
     .get("wordWrapColumn", 72);
+  const previousLength = text.length - change.text.length;
+  if (previousLength > wrapColumn) return;
   if (text.length <= wrapColumn) return;
 
   const prefix = detectPrefix(text);
